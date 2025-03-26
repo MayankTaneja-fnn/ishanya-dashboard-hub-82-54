@@ -11,6 +11,7 @@ import DiscussionRoom from '@/components/discussion/DiscussionRoom';
 import EmployeeSearch from '@/components/hr/EmployeeSearch';
 import EmployeeList from '@/components/hr/EmployeeList';
 import { fetchCenters } from '@/lib/api';
+import { toast } from 'sonner';
 
 type Center = {
   id: string;
@@ -30,6 +31,26 @@ const HRDashboard = () => {
   const user = getCurrentUser();
   const dataFetched = useRef(false);
 
+  // Fetch employee count directly from the database
+  const fetchEmployeeCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error('Error fetching employee count:', error);
+        return;
+      }
+      
+      if (count !== null) {
+        setTotalEmployees(count);
+      }
+    } catch (error) {
+      console.error('Error in fetchEmployeeCount:', error);
+    }
+  };
+
   useEffect(() => {
     if (dataFetched.current || !user) return;
     
@@ -44,17 +65,8 @@ const HRDashboard = () => {
           setCenters(centersData);
         }
 
-        // Fetch total employee count
-        const { data: centersCountData, error: centersError } = await supabase
-          .from('centers')
-          .select('num_of_employees');
-
-        if (centersError) {
-          console.error('Error fetching centers:', centersError);
-        } else {
-          const total = centersCountData.reduce((sum, center) => sum + (center.num_of_employees || 0), 0);
-          setTotalEmployees(total);
-        }
+        // Fetch employee count
+        await fetchEmployeeCount();
 
         // Fetch employees
         const { data: employeesData, error: employeesError } = await supabase
@@ -63,6 +75,7 @@ const HRDashboard = () => {
 
         if (employeesError) {
           console.error('Error fetching employees:', employeesError);
+          toast.error('Failed to load employees data');
           return;
         }
 
@@ -72,12 +85,29 @@ const HRDashboard = () => {
         }
       } catch (error) {
         console.error('Error fetching data:', error);
+        toast.error('An error occurred while loading data');
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
+
+    // Setup real-time subscription for employee count updates
+    const channel = supabase
+      .channel('employee-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'employees' }, 
+        () => {
+          // Refresh employee count when any changes occur
+          fetchEmployeeCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   useEffect(() => {
