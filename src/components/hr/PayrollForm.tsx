@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,10 +51,8 @@ const PayrollForm = ({ employeeId, onSuccess, initialData, onCancel }: PayrollFo
         last_paid: lastPaidDate ? format(lastPaidDate, 'yyyy-MM-dd') : null
       };
       
-      // Completely separate operations to avoid deep type instantiation
       if (initialData?.id) {
-        // Update existing payroll record
-        const result = await supabase
+        let result = await supabase
           .from('employee_payroll')
           .update(payrollData)
           .eq('id', initialData.id);
@@ -64,8 +61,7 @@ const PayrollForm = ({ employeeId, onSuccess, initialData, onCancel }: PayrollFo
           throw result.error;
         }
       } else {
-        // Insert new payroll record
-        const result = await supabase
+        let result = await supabase
           .from('employee_payroll')
           .insert(payrollData);
         
@@ -74,7 +70,6 @@ const PayrollForm = ({ employeeId, onSuccess, initialData, onCancel }: PayrollFo
         }
       }
       
-      // Track the database change
       await trackDatabaseChange('employee_payroll', initialData?.id ? 'update' : 'insert');
       
       toast.success(initialData?.id ? 'Payroll information updated' : 'Payroll information saved', { duration: 3000 });
