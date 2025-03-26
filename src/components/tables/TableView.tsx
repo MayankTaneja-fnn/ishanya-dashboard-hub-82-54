@@ -37,107 +37,88 @@ const TableView = ({ table }: TableViewProps) => {
   const [processedColumns, setProcessedColumns] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const tableName = table.name.toLowerCase();
-        
-        let idField = 'id';
-        if (tableName === 'students') {
-          idField = 'student_id';
-        } else if (tableName === 'employees') {
-          idField = 'employee_id';
-        } else if (tableName === 'educators') {
-          idField = 'employee_id';
-        }
-        
-        setEntityIdField(idField);
-        
-        const columnsData = await fetchTableColumns(tableName);
-        if (!columnsData) {
-          setError('Failed to fetch table columns');
-          return;
-        }
-        
-        setColumns(columnsData);
-        
-        const uniqueColumns = [...new Set(columnsData)].filter(col => {
-          if (col === 'enrollment_year' && 
-              columnsData.indexOf(col) !== columnsData.lastIndexOf(col)) {
-            return columnsData.indexOf(col) === columnsData.indexOf('enrollment_year');
-          }
-          return true;
-        });
-        
-        setProcessedColumns(uniqueColumns);
-        
-        let query = supabase.from(tableName).select('*');
-        
-        if (tableName.toLowerCase() === 'students' && table.center_id) {
-          query = query.eq('center_id', table.center_id);
-        } else if (table.center_id) {
-          query = query.eq('center_id', table.center_id);
-        }
-        
-        const { data: tableData, error: fetchError } = await query;
-        
-        if (fetchError) {
-          console.error('Error fetching data:', fetchError);
-          setError('Failed to fetch data');
-          return;
-        }
-        
-        setData(tableData || []);
-        setFilteredData(tableData || []);
-        
-        const defaultFormData: Record<string, any> = {};
-        uniqueColumns.forEach(col => {
-          if (col !== 'created_at' && col !== 'updated_at') {
-            defaultFormData[col] = '';
-          }
-        });
-        
-        if (table.center_id) {
-          defaultFormData.center_id = table.center_id;
-        }
-        
-        if (table.program_id) {
-          defaultFormData.program_id = table.program_id;
-        }
-        
-        setFormData(defaultFormData);
-        
-      } catch (err) {
-        console.error('Error in fetchData:', err);
-        setError('An unexpected error occurred');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-
-    const handleOpenStudentForm = (event: CustomEvent<any>) => {
-      if (table.name.toLowerCase() === 'students') {
-        const { formData: prefillData, sourceEntry, onSuccess } = event.detail;
-        
-        setFormData(prefillData);
-        setFormDataSource({ sourceEntry, onSuccess });
-        setIsEditing(false);
-        setSelectedRow(null);
-        setShowForm(true);
-        toast.success('Student form opened with prefilled data');
-      }
-    };
-
-    window.addEventListener('openStudentForm', handleOpenStudentForm as EventListener);
-
-    return () => {
-      window.removeEventListener('openStudentForm', handleOpenStudentForm as EventListener);
-    };
+    fetchTableData();
   }, [table]);
+
+  const fetchTableData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const tableName = table.name.toLowerCase();
+      
+      let idField = 'id';
+      if (tableName === 'students') {
+        idField = 'student_id';
+      } else if (tableName === 'employees') {
+        idField = 'employee_id';
+      } else if (tableName === 'educators') {
+        idField = 'employee_id';
+      }
+      
+      setEntityIdField(idField);
+      
+      const columnsData = await fetchTableColumns(tableName);
+      if (!columnsData) {
+        setError('Failed to fetch table columns');
+        return;
+      }
+      
+      setColumns(columnsData);
+      
+      const uniqueColumns = [...new Set(columnsData)].filter(col => {
+        if (col === 'enrollment_year' && 
+            columnsData.indexOf(col) !== columnsData.lastIndexOf(col)) {
+          return columnsData.indexOf(col) === columnsData.indexOf('enrollment_year');
+        }
+        return true;
+      });
+      
+      setProcessedColumns(uniqueColumns);
+      
+      let query = supabase.from(tableName).select('*');
+      
+      if (tableName.toLowerCase() === 'students' && table.center_id) {
+        query = query.eq('center_id', table.center_id);
+      } else if (table.center_id) {
+        query = query.eq('center_id', table.center_id);
+      }
+      
+      const { data: tableData, error: fetchError } = await query;
+      
+      if (fetchError) {
+        console.error('Error fetching data:', fetchError);
+        setError('Failed to fetch data');
+        return;
+      }
+      
+      setData(tableData || []);
+      setFilteredData(tableData || []);
+      
+      const defaultFormData: Record<string, any> = {};
+      uniqueColumns.forEach(col => {
+        if (col !== 'created_at' && col !== 'updated_at') {
+          defaultFormData[col] = '';
+        }
+      });
+      
+      if (table.center_id) {
+        defaultFormData.center_id = table.center_id;
+      }
+      
+      if (table.program_id) {
+        defaultFormData.program_id = table.program_id;
+      }
+      
+      setFormData(defaultFormData);
+      
+    } catch (err) {
+      console.error('Error in fetchData:', err);
+      setError('An unexpected error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -442,7 +423,7 @@ const TableView = ({ table }: TableViewProps) => {
           
           setFormData(defaultFormData);
         }}
-        onRefresh={() => window.location.reload()}
+        onRefresh={() => fetchTableData()}
       />
       
       {showUpload && (

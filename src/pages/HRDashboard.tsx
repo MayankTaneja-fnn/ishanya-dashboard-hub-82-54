@@ -45,16 +45,7 @@ const HRDashboard = () => {
         }
 
         // Fetch total employee count
-        const { data: centersCountData, error: centersError } = await supabase
-          .from('centers')
-          .select('num_of_employees');
-
-        if (centersError) {
-          console.error('Error fetching centers:', centersError);
-        } else {
-          const total = centersCountData.reduce((sum, center) => sum + (center.num_of_employees || 0), 0);
-          setTotalEmployees(total);
-        }
+        fetchTotalEmployees();
 
         // Fetch employees
         const { data: employeesData, error: employeesError } = await supabase
@@ -78,7 +69,40 @@ const HRDashboard = () => {
     };
 
     fetchData();
+    
+    // Set up real-time subscription for employee count
+    const employeesChannel = supabase
+      .channel('employees-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'employees'
+      }, () => {
+        fetchTotalEmployees();
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(employeesChannel);
+    };
   }, [user]);
+  
+  const fetchTotalEmployees = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('employees')
+        .select('*', { count: 'exact', head: true });
+      
+      if (error) {
+        console.error('Error fetching employee count:', error);
+        return;
+      }
+      
+      setTotalEmployees(count || 0);
+    } catch (error) {
+      console.error('Error in fetchTotalEmployees:', error);
+    }
+  };
 
   useEffect(() => {
     if (employees.length === 0) return;
