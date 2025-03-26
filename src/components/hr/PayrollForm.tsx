@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -51,23 +52,22 @@ const PayrollForm = ({ employeeId, onSuccess, initialData, onCancel }: PayrollFo
         last_paid: lastPaidDate ? format(lastPaidDate, 'yyyy-MM-dd') : null
       };
       
+      // Save to database using the appropriate method
       if (initialData?.id) {
-        let result = await supabase
+        // Update existing record
+        const { error } = await supabase
           .from('employee_payroll')
           .update(payrollData)
           .eq('id', initialData.id);
-        
-        if (result.error) {
-          throw result.error;
-        }
+          
+        if (error) throw error;
       } else {
-        let result = await supabase
+        // Insert new record
+        const { error } = await supabase
           .from('employee_payroll')
           .insert(payrollData);
-        
-        if (result.error) {
-          throw result.error;
-        }
+          
+        if (error) throw error;
       }
       
       await trackDatabaseChange('employee_payroll', initialData?.id ? 'update' : 'insert');
