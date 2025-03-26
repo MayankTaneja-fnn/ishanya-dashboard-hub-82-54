@@ -16,6 +16,8 @@ import { LogOut, User } from 'lucide-react';
 import { AccessibilityMenu } from '@/components/ui/AccessibilityMenu';
 import { useLanguage } from '@/components/ui/LanguageProvider';
 import { toast } from 'sonner';
+import ReadAloud from '@/components/ui/ReadAloud';
+import KeyboardNavigation from '@/components/ui/KeyboardNavigation';
 
 const Navbar = () => {
   const user = getCurrentUser();
@@ -60,57 +62,64 @@ const Navbar = () => {
   };
   
   return (
-    <nav className="border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link to="/">
-                <img 
-                  src="/lovable-uploads/a6017f5f-7947-49ad-a9ed-0bc0e588a9b0.png" 
-                  alt="Ishanya Foundation" 
-                  className="h-10 w-auto" 
-                />
-              </Link>
+    <>
+      {/* Add KeyboardNavigation component */}
+      <KeyboardNavigation />
+      
+      <nav className="border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex">
+              <div className="flex-shrink-0 flex items-center">
+                <Link to="/">
+                  <img 
+                    src="/lovable-uploads/a6017f5f-7947-49ad-a9ed-0bc0e588a9b0.png" 
+                    alt="Ishanya Foundation" 
+                    className="h-10 w-auto" 
+                  />
+                </Link>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {/* Add ReadAloud component */}
+              <ReadAloud />
+              {/* Accessibility Menu */}
+              <AccessibilityMenu />
+              
+              {/* User menu dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className={getRoleColor(user.role)}>
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      <p className="text-xs font-medium mt-1 bg-gray-100 text-gray-800 rounded px-1.5 py-0.5 w-fit">
+                        {user.role}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Accessibility Menu */}
-            <AccessibilityMenu />
-            
-            {/* User menu dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className={getRoleColor(user.role)}>
-                      {getInitials(user.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    <p className="text-xs font-medium mt-1 bg-gray-100 text-gray-800 rounded px-1.5 py-0.5 w-fit">
-                      {user.role}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </>
   );
 };
 

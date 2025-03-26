@@ -8,6 +8,8 @@ import { AccessibilityMenu } from '@/components/ui/AccessibilityMenu';
 import ChatBot from '@/components/chatbot/ChatBot';
 import { getCurrentUser } from '@/lib/auth';
 import DyslexiaToggle from '@/components/ui/DyslexiaToggle';
+import ReadAloud from '@/components/ui/ReadAloud';
+import KeyboardNavigation from '@/components/ui/KeyboardNavigation';
 
 type LayoutProps = {
   title: string;
@@ -27,6 +29,9 @@ const Layout = ({ title, subtitle, children, showBackButton = false, onBack }: L
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+      {/* Add KeyboardNavigation component */}
+      <KeyboardNavigation />
+      
       <div className="container px-4 py-6 mx-auto max-w-7xl">
         <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
           <div className="flex items-center gap-3">
@@ -48,6 +53,8 @@ const Layout = ({ title, subtitle, children, showBackButton = false, onBack }: L
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden sm:flex items-center gap-2">
+              {/* Add ReadAloud component */}
+              <ReadAloud />
               <DyslexiaToggle />
               <AccessibilityMenu />
             </div>
