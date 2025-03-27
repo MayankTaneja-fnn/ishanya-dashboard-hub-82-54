@@ -9,6 +9,9 @@ The Ishanya Foundation Management Portal is a hybrid Customer Relationship Manag
 - Microservices: SupaBase REST, LangChain, Google Cloud Platform (GCP)  
 - Deployment: Vercel (Frontend), Render (Backend & Microservices)  
 
+## Deployed Link
+https://ishanya-portal.vercel.app/
+
 ## Features & Functionalities  
 
 ### 1. Role-Based Login  
