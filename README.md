@@ -49,22 +49,25 @@ Users can log in with specific role-based access levels:
 ## Installation & Setup  
 
 ### 1. Clone the Repository  
-To set up the project on your local system, clone the repository using the following command:  
-bash
-git clone <repository_url>
-cd <project_folder>
+To set up the project on your local system, clone the repository using the following command: 
+ 
+```bash```
+```git clone <repository_url>```
+```cd <project_folder>```
 
 
 ### 2. Install Dependencies  
 Run the following command to install all required dependencies for the frontend:  
-bash
-npm install
+
+```bash```
+```npm install```
 
 
 ### 3. Start the Development Server  
 Use the following command to start the frontend development server:  
-bash
-npm run dev
+
+```bash```
+```npm run dev```
 
 This will start the Next.js application, typically running on http://localhost:3000/.  
 
