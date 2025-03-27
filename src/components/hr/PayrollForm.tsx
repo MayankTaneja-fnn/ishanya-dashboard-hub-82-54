@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const payrollSchema = z.object({
@@ -115,19 +115,12 @@ const PayrollForm = ({ employeeId, initialData, onSuccess, onCancel }: PayrollFo
         throw response.error;
       }
 
-      toast({
-        title: `Payroll ${initialData?.id ? 'updated' : 'added'} successfully`,
-        variant: "default",
-      });
+      toast.success(`Payroll ${initialData?.id ? 'updated' : 'added'} successfully`);
       
       onSuccess();
     } catch (error: any) {
       console.error('Error saving payroll data:', error);
-      toast({
-        title: "Error saving payroll data",
-        description: error.message || "Please try again",
-        variant: "destructive",
-      });
+      toast.error(`Error saving payroll data: ${error.message || "Please try again"}`);
     } finally {
       setIsLoading(false);
     }
