@@ -273,6 +273,24 @@ const FilteredTableView = ({ table }: FilteredTableViewProps) => {
     setFilteredData(filtered);
   }, [searchTerm, filterColumn, data]);
 
+  useEffect(() => {
+    const columnsChannel = supabase
+      .channel('custom-columns-changes')
+      .on('postgres_changes', 
+        { event: 'INSERT', schema: 'public', table: 'custom_columns' }, 
+        (payload) => {
+          if (payload.new && payload.new.table_name === table.name.toLowerCase()) {
+            window.location.reload();
+          }
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      supabase.removeChannel(columnsChannel);
+    };
+  }, [table]);
+
   const handleRowClick = (row: RecordWithID) => {
     setSelectedRow(row);
     setIsEditing(false);

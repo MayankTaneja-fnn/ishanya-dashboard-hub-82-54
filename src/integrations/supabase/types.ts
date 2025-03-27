@@ -71,6 +71,30 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_columns: {
+        Row: {
+          column_name: string
+          column_type: string
+          created_at: string | null
+          id: string
+          table_name: string
+        }
+        Insert: {
+          column_name: string
+          column_type: string
+          created_at?: string | null
+          id?: string
+          table_name: string
+        }
+        Update: {
+          column_name?: string
+          column_type?: string
+          created_at?: string | null
+          id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       discussion_messages: {
         Row: {
           created_at: string
@@ -905,6 +929,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_custom_column: {
+        Args: {
+          p_table_name: string
+          p_column_name: string
+          p_column_type: string
+        }
+        Returns: string
+      }
       run_sql: {
         Args: {
           query: string
