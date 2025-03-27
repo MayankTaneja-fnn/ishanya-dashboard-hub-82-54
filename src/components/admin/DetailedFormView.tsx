@@ -1,11 +1,12 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { User, Mail, Phone, School, Calendar, Book } from 'lucide-react';
 
 interface DetailedFormViewProps {
   entry: Record<string, any>;
@@ -153,6 +154,62 @@ const DetailedFormView = ({
            (typeof value === 'string' && value.length > 50);
   }
 
+  function organizeFieldsByCategory() {
+    const fields = getFormFields();
+    
+    const categories = {
+      personalInfo: ['First Name', 'Last Name', 'Gender', 'Date of Birth', 'Blood Group', 'Primary Diagnosis', 'Comorbidity', 'UDID', 'Allergies'],
+      contactInfo: ['Contact Number', 'Alternate Contact Number', 'Parent\'s Email', 'Address'],
+      familyInfo: ['Father\'s Name', 'Mother\'s Name'],
+      programInfo: ['Program', 'Enrollment Year', 'Status', 'Educator', 'Center ID'],
+      otherInfo: [] as string[]
+    };
+    
+    // Put remaining fields in otherInfo
+    const categorizedFields = [...categories.personalInfo, ...categories.contactInfo, 
+                             ...categories.familyInfo, ...categories.programInfo];
+    
+    fields.forEach(field => {
+      if (!categorizedFields.includes(field)) {
+        categories.otherInfo.push(field);
+      }
+    });
+    
+    return categories;
+  }
+
+  function renderCategoryFields(categoryFields: string[]) {
+    return categoryFields.filter(field => formData[field] !== undefined).map(field => (
+      <div key={field} className="space-y-2">
+        <Label htmlFor={field} className="font-medium">
+          {formatFieldLabel(field)}
+        </Label>
+        
+        {mode === 'view' ? (
+          <div className="p-2 bg-gray-50 rounded border min-h-[38px]">
+            {formData[field] || '-'}
+          </div>
+        ) : shouldUseTextarea(field, formData[field] || '') ? (
+          <Textarea
+            id={field}
+            value={formData[field] || ''}
+            onChange={(e) => handleInputChange(field, e.target.value)}
+            className="w-full"
+          />
+        ) : (
+          <Input
+            id={field}
+            type="text"
+            value={formData[field] || ''}
+            onChange={(e) => handleInputChange(field, e.target.value)}
+          />
+        )}
+      </div>
+    ));
+  }
+
+  const categories = organizeFieldsByCategory();
+
   return (
     <div>
       {mode === 'view' && onAccept && onReject && (
@@ -177,35 +234,86 @@ const DetailedFormView = ({
     
       <ScrollArea className="h-[60vh] pr-4">
         <Card className="border-0 shadow-none">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
-            {getFormFields().map(field => (
-              <div key={field} className="space-y-2">
-                <Label htmlFor={field} className="font-medium">
-                  {formatFieldLabel(field)}
-                </Label>
-                
-                {mode === 'view' ? (
-                  <div className="p-2 bg-gray-50 rounded border min-h-[38px]">
-                    {formData[field] || '-'}
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Personal Information Card */}
+              <Card className="col-span-1 shadow-sm border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <User className="h-4 w-4 text-blue-500" />
+                    Personal Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {renderCategoryFields(categories.personalInfo)}
                   </div>
-                ) : shouldUseTextarea(field, formData[field] || '') ? (
-                  <Textarea
-                    id={field}
-                    value={formData[field] || ''}
-                    onChange={(e) => handleInputChange(field, e.target.value)}
-                    className="w-full"
-                  />
-                ) : (
-                  <Input
-                    id={field}
-                    type="text"
-                    value={formData[field] || ''}
-                    onChange={(e) => handleInputChange(field, e.target.value)}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+                </CardContent>
+              </Card>
+
+              {/* Contact Information Card */}
+              <Card className="col-span-1 shadow-sm border-l-4 border-l-green-500 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-green-500" />
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {renderCategoryFields(categories.contactInfo)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Family Information Card */}
+              <Card className="col-span-1 shadow-sm border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <User className="h-4 w-4 text-purple-500" />
+                    Family Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {renderCategoryFields(categories.familyInfo)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Program Information Card */}
+              <Card className="col-span-1 shadow-sm border-l-4 border-l-amber-500 hover:shadow-md transition-shadow">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-md flex items-center gap-2">
+                    <School className="h-4 w-4 text-amber-500" />
+                    Program Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {renderCategoryFields(categories.programInfo)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Other Information Card */}
+              {categories.otherInfo.length > 0 && (
+                <Card className="col-span-1 shadow-sm border-l-4 border-l-gray-500 hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-md flex items-center gap-2">
+                      <Book className="h-4 w-4 text-gray-500" />
+                      Additional Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {renderCategoryFields(categories.otherInfo)}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </CardContent>
         </Card>
         
         {mode === 'edit' && (
