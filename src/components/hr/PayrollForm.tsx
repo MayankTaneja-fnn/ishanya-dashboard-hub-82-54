@@ -1,144 +1,193 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { trackDatabaseChange } from '@/utils/dbTracking';
+import { supabase } from '@/integrations/supabase/client';
+import { z } from 'zod';
+import { toast } from '@/components/ui/use-toast';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+
+const payrollSchema = z.object({
+  current_salary: z.number().min(1, "Salary must be greater than 0"),
+  last_paid: z.string().optional(),
+});
+
+type PayrollFormData = {
+  current_salary: number;
+  last_paid?: string;
+};
 
 type PayrollFormProps = {
   employeeId: number;
-  onSuccess: () => void;
   initialData?: {
     id?: string;
+    employee_id?: number;
     current_salary?: number;
     last_paid?: string;
   };
-  onCancel?: () => void;
+  onSuccess: () => void;
+  onCancel: () => void;
 };
 
-const PayrollForm = ({ employeeId, onSuccess, initialData, onCancel }: PayrollFormProps) => {
-  const [currentSalary, setCurrentSalary] = useState<number | undefined>(
-    initialData?.current_salary
-  );
-  
-  const [lastPaidDate, setLastPaidDate] = useState<Date | undefined>(
+const PayrollForm = ({ employeeId, initialData, onSuccess, onCancel }: PayrollFormProps) => {
+  const [formData, setFormData] = useState<PayrollFormData>({
+    current_salary: initialData?.current_salary || 0,
+    last_paid: initialData?.last_paid || undefined,
+  });
+  const [date, setDate] = useState<Date | undefined>(
     initialData?.last_paid ? new Date(initialData.last_paid) : undefined
   );
-  
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'current_salary') {
+      const numericValue = parseFloat(value);
+      setFormData({ ...formData, [name]: isNaN(numericValue) ? 0 : numericValue });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  useEffect(() => {
+    if (date) {
+      setFormData(prev => ({ ...prev, last_paid: date.toISOString() }));
+    }
+  }, [date]);
+
+  const validateForm = () => {
+    try {
+      payrollSchema.parse(formData);
+      setValidationErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: Record<string, string> = {};
+        error.errors.forEach((err) => {
+          const path = err.path[0] as string;
+          errors[path] = err.message;
+        });
+        setValidationErrors(errors);
+      }
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!currentSalary) {
-      toast.error('Current salary is required');
+    if (!validateForm()) {
       return;
     }
-    
-    setIsSubmitting(true);
+
+    setIsLoading(true);
     
     try {
       const payrollData = {
         employee_id: employeeId,
-        current_salary: currentSalary,
-        last_paid: lastPaidDate ? format(lastPaidDate, 'yyyy-MM-dd') : null
+        current_salary: formData.current_salary,
+        last_paid: formData.last_paid,
       };
+
+      let response;
       
-      // Save to database using the appropriate method
       if (initialData?.id) {
         // Update existing record
-        const { error } = await supabase
+        response = await supabase
           .from('employee_payroll')
           .update(payrollData)
           .eq('id', initialData.id);
-          
-        if (error) throw error;
       } else {
         // Insert new record
-        const { error } = await supabase
+        response = await supabase
           .from('employee_payroll')
           .insert(payrollData);
-          
-        if (error) throw error;
       }
+
+      if (response.error) {
+        throw response.error;
+      }
+
+      toast({
+        title: `Payroll ${initialData?.id ? 'updated' : 'added'} successfully`,
+        variant: "default",
+      });
       
-      await trackDatabaseChange('employee_payroll', initialData?.id ? 'update' : 'insert');
-      
-      toast.success(initialData?.id ? 'Payroll information updated' : 'Payroll information saved', { duration: 3000 });
       onSuccess();
-    } catch (error) {
-      console.error('Error saving payroll:', error);
-      toast.error('Failed to save payroll information', { duration: 3000 });
+    } catch (error: any) {
+      console.error('Error saving payroll data:', error);
+      toast({
+        title: "Error saving payroll data",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{initialData?.id ? 'Edit Payroll Information' : 'Add Payroll Information'}</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="current_salary">Current Salary <span className="text-red-500">*</span></Label>
-            <Input
-              id="current_salary"
-              type="number"
-              value={currentSalary || ''}
-              onChange={(e) => setCurrentSalary(e.target.value ? Number(e.target.value) : undefined)}
-              placeholder="Enter current salary"
-              required
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="last_paid">Last Paid Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !lastPaidDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {lastPaidDate ? format(lastPaidDate, 'PPP') : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={lastPaidDate}
-                  onSelect={setLastPaidDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-between">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-              Cancel
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="current_salary">
+          Salary <span className="text-red-500">*</span>
+        </Label>
+        <Input
+          id="current_salary"
+          name="current_salary"
+          type="number"
+          value={formData.current_salary}
+          onChange={handleInputChange}
+          placeholder="Enter salary amount"
+          className={validationErrors.current_salary ? "border-red-500" : ""}
+        />
+        {validationErrors.current_salary && (
+          <p className="text-sm text-red-500">{validationErrors.current_salary}</p>
+        )}
+      </div>
+      
+      <div className="space-y-2">
+        <Label>Last Payment Date</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP") : <span>Select date</span>}
             </Button>
-          )}
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : (initialData?.id ? 'Update' : 'Save')}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={setDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      
+      <div className="flex justify-end gap-2 pt-4">
+        <Button variant="outline" onClick={onCancel} type="button">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? <LoadingSpinner size="sm" /> : initialData?.id ? "Update" : "Save"}
+        </Button>
+      </div>
+    </form>
   );
 };
 
