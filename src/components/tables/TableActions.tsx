@@ -2,13 +2,14 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Upload, RefreshCw, FileText, Mic } from 'lucide-react';
+import { Plus, Upload, RefreshCw, FileText, Mic, Columns } from 'lucide-react';
 import StudentFormHandler from '@/components/admin/StudentFormHandler';
 import StudentForm from '@/components/admin/StudentForm';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import VoiceInputDialog from '@/components/ui/VoiceInputDialog';
 import { openVoiceInputDialog } from '@/utils/formEventUtils';
+import AddColumnDialog from '@/components/tables/AddColumnDialog';
 
 type TableActionsProps = {
   tableName: string;
@@ -27,6 +28,7 @@ const TableActions = ({
 }: TableActionsProps) => {
   const [showStudentForm, setShowStudentForm] = useState(false);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [showAddColumn, setShowAddColumn] = useState(false);
   
   const handleAddStudent = async (data: any) => {
     try {
@@ -131,6 +133,15 @@ const TableActions = ({
             <Mic className="mr-1 h-4 w-4" />
             Voice Entry
           </Button>
+
+          <Button 
+            variant="outline"
+            onClick={() => setShowAddColumn(true)}
+            className="flex items-center"
+          >
+            <Columns className="mr-1 h-4 w-4" />
+            Add Column
+          </Button>
         </div>
       </CardContent>
       
@@ -161,6 +172,15 @@ const TableActions = ({
           onComplete={handleVoiceInputComplete}
         />
       )}
+
+      <AddColumnDialog
+        isOpen={showAddColumn}
+        onClose={() => setShowAddColumn(false)}
+        tableName={tableName}
+        onSuccess={() => {
+          if (onRefresh) onRefresh();
+        }}
+      />
     </Card>
   );
 };
