@@ -38,7 +38,7 @@ const EmployeeDetailPage = () => {
         const { data: employeeData, error: employeeError } = await supabase
           .from('employees')
           .select('*')
-          .eq('employee_id', employeeId)
+          .eq('employee_id', parseInt(employeeId))
           .single();
           
         if (employeeError) {
@@ -55,7 +55,7 @@ const EmployeeDetailPage = () => {
           const { data: educatorData, error: educatorError } = await supabase
             .from('educators')
             .select('*')
-            .eq('employee_id', employeeId)
+            .eq('employee_id', parseInt(employeeId))
             .maybeSingle();
             
           if (!educatorError && educatorData) {
@@ -91,7 +91,7 @@ const EmployeeDetailPage = () => {
       const { error } = await supabase
         .from('employees')
         .update(formData)
-        .eq('employee_id', employeeId);
+        .eq('employee_id', parseInt(employeeId!));
         
       if (error) {
         throw error;

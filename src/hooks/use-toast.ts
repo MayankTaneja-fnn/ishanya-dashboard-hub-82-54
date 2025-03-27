@@ -1,5 +1,5 @@
 
-import { toast as sonnerToast, Toast, ToastProps } from "sonner";
+import { toast as sonnerToast, ToasterProps } from "sonner";
 import { useState, useEffect } from "react";
 
 type ToastOptions = {
@@ -8,7 +8,16 @@ type ToastOptions = {
   variant?: "default" | "destructive" | undefined;
 };
 
-const useToast = () => {
+// This interface matches what the Shadcn ui/toast expects
+interface ToastApi {
+  toast: (props: ToastOptions) => void;
+  toasts: any[];
+}
+
+const useToast = (): ToastApi => {
+  // Dummy empty array since we're not using shadcn/toast's state management
+  const [toasts] = useState<any[]>([]);
+  
   const toast = ({ title, description, variant }: ToastOptions) => {
     if (variant === "destructive") {
       sonnerToast.error(title, {
@@ -21,7 +30,7 @@ const useToast = () => {
     }
   };
 
-  return { toast };
+  return { toast, toasts };
 };
 
 // Re-export sonner toast for direct usage
