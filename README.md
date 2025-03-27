@@ -76,70 +76,31 @@ Ensure that the backend services (Flask API and FastAPI) are running.
 
 #### Setting up the Python Virtual Environment  
 Create and activate a virtual environment to manage dependencies:  
-bash
-python -m venv venv
+
+```bash```
+```python -m venv venv```
+
 source venv/bin/activate  # On Windows, use venv\Scripts\activate
 
 
-#### Install Backend Dependencies  
-bash
-pip install -r requirements.txt
+#### Install Backend Dependencies 
+ 
+```bash```
+```pip install -r requirements.txt```
 
 
 #### Run Flask API  
-bash
-flask run
+
+```bash```
+```flask run```
 
 The Flask API will start on http://localhost:5000/.  
 
 #### Run FastAPI  
-bash
-uvicorn main:app --reload
+
+```bash```
+```uvicorn main:app --reload```
 
 The FastAPI service will run on http://localhost:8000/.  
 
-### 5. Database Configuration  
-- The system uses Supabase REST as the backend database. Ensure Supabase is configured correctly by providing the required API keys and database credentials in the environment variables.  
 
-### 6. Deployment  
-- Frontend: Deployed using Vercel  
-- Backend: Deployed on Render (Flask API, FastAPI)  
-- Microservices: Hosted on Google Cloud Platform (GCP)  
-
-## Usage Instructions  
-
-1. Logging In: Users should enter their credentials and select their role. Based on the role, different dashboards will be accessible.  
-2. Managing Students & Employees:  
-   - Administrators can add/edit student and employee details, upload CSV files, and use voice input for data entry.  
-3. HR Tasks:  
-   - HR can view employee lists, track attendance, and input payroll data.  
-4. Educator Workflow:  
-   - Educators can manage student details, track attendance, update reports, and organize tasks using a Kanban board.  
-5. Parent Access:  
-   - Parents can access their child’s profile, view performance reports, and receive notifications about updates.  
-
-## Contributing  
-
-### 1. Fork the Repository  
-Click the "Fork" button on the repository page to create your own copy of the project.  
-
-### 2. Create a Feature Branch  
-Create a new branch for your feature or bug fix:  
-bash
-git checkout -b feature-name
-
-
-### 3. Commit Your Changes  
-After making changes, commit them using:  
-bash
-git commit -m "Added new feature"
-
-
-### 4. Push to GitHub  
-Push your changes to your forked repository:  
-bash
-git push origin feature-name
-
-
-### 5. Create a Pull Request  
-Go to the original repository, open a pull request, and describe the changes you made.
