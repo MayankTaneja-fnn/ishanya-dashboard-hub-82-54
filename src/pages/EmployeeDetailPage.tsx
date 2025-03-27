@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Edit, Save, X } from 'lucide-react';
+import { AlertCircle, Edit, Kanban, Save, X, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import EmployeeAttendance from '@/components/hr/EmployeeAttendance';
 import EmployeePayroll from '@/components/hr/EmployeePayroll';
@@ -116,6 +116,14 @@ const EmployeeDetailPage = () => {
       setLoading(false);
     }
   };
+
+  const handleGoToKanban = () => {
+    if (employee && employee.employee_id) {
+      window.open(`https://goalwize.vercel.app/kanban/${employee.employee_id}`, '_blank');
+    }
+  };
+  
+  const isEducator = employee?.designation === 'Educator';
   
   if (loading) {
     return (
@@ -158,28 +166,41 @@ const EmployeeDetailPage = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle>Employee Information</CardTitle>
-                <Button 
-                  variant={isEditing ? "outline" : "default"} 
-                  size="sm"
-                  onClick={() => {
-                    if (isEditing) {
-                      setFormData(employee);
-                    }
-                    setIsEditing(!isEditing);
-                  }}
-                >
-                  {isEditing ? (
-                    <>
-                      <X className="mr-2 h-4 w-4" />
-                      Cancel
-                    </>
-                  ) : (
-                    <>
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </>
+                <div className="flex gap-2">
+                  {isEducator && (
+                    <Button 
+                      variant="outline" 
+                      className="flex items-center gap-2"
+                      onClick={handleGoToKanban}
+                    >
+                      <Kanban className="h-4 w-4" />
+                      <span>View Kanban</span>
+                      <ExternalLink className="h-3 w-3 ml-1" />
+                    </Button>
                   )}
-                </Button>
+                  <Button 
+                    variant={isEditing ? "outline" : "default"} 
+                    size="sm"
+                    onClick={() => {
+                      if (isEditing) {
+                        setFormData(employee);
+                      }
+                      setIsEditing(!isEditing);
+                    }}
+                  >
+                    {isEditing ? (
+                      <>
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 {isEditing ? (
