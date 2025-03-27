@@ -1,9 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 
 interface DetailedFormViewProps {
   entry: Record<string, any>;
@@ -174,35 +176,37 @@ const DetailedFormView = ({
       )}
     
       <ScrollArea className="h-[60vh] pr-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
-          {getFormFields().map(field => (
-            <div key={field} className="space-y-2">
-              <Label htmlFor={field} className="font-medium">
-                {formatFieldLabel(field)}
-              </Label>
-              
-              {mode === 'view' ? (
-                <div className="p-2 bg-gray-50 rounded border min-h-[38px]">
-                  {formData[field] || '-'}
-                </div>
-              ) : shouldUseTextarea(field, formData[field] || '') ? (
-                <Textarea
-                  id={field}
-                  value={formData[field] || ''}
-                  onChange={(e) => handleInputChange(field, e.target.value)}
-                  className="w-full"
-                />
-              ) : (
-                <Input
-                  id={field}
-                  type="text"
-                  value={formData[field] || ''}
-                  onChange={(e) => handleInputChange(field, e.target.value)}
-                />
-              )}
-            </div>
-          ))}
-        </div>
+        <Card className="border-0 shadow-none">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-2">
+            {getFormFields().map(field => (
+              <div key={field} className="space-y-2">
+                <Label htmlFor={field} className="font-medium">
+                  {formatFieldLabel(field)}
+                </Label>
+                
+                {mode === 'view' ? (
+                  <div className="p-2 bg-gray-50 rounded border min-h-[38px]">
+                    {formData[field] || '-'}
+                  </div>
+                ) : shouldUseTextarea(field, formData[field] || '') ? (
+                  <Textarea
+                    id={field}
+                    value={formData[field] || ''}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                    className="w-full"
+                  />
+                ) : (
+                  <Input
+                    id={field}
+                    type="text"
+                    value={formData[field] || ''}
+                    onChange={(e) => handleInputChange(field, e.target.value)}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
         
         {mode === 'edit' && (
           <div className="flex justify-end mt-6 gap-2">

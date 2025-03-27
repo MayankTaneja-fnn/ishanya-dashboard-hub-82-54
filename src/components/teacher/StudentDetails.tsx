@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,9 @@ import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 type StudentDetailsProps = {
   studentId: number;
@@ -189,7 +188,7 @@ const StudentDetails = ({ studentId, onBack }: StudentDetailsProps) => {
         <CardHeader>
           <CardTitle>Student Details</CardTitle>
           <CardDescription>
-            <Button onClick={onBack} variant="ghost" className="flex items-center">
+            <Button onClick={onBack} variant="ghost" className="flex items-center p-0">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
@@ -214,30 +213,54 @@ const StudentDetails = ({ studentId, onBack }: StudentDetailsProps) => {
                 </div>
               </div>
               <Separator className="my-4" />
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Full Name</h3>
-                  <p>{student.first_name} {student.last_name}</p>
+              <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Full Name</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.first_name} {student.last_name}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                  <p>{student.student_email}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.student_email || 'N/A'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Gender</h3>
-                  <p>{student.gender}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Gender</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.gender}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Date of Birth</h3>
-                  <p>{student.dob ? format(new Date(student.dob), 'MMMM d, yyyy') : 'N/A'}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Date of Birth</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.dob ? format(new Date(student.dob), 'MMMM d, yyyy') : 'N/A'}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Contact Number</h3>
-                  <p>{student.contact_number}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Contact Number</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.contact_number}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500">Address</h3>
-                  <p>{student.address || 'N/A'}</p>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="col-span-1">
+                    <h3 className="text-sm font-medium text-gray-500">Address</h3>
+                  </div>
+                  <div className="col-span-2">
+                    <p>{student.address || 'N/A'}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -245,27 +268,56 @@ const StudentDetails = ({ studentId, onBack }: StudentDetailsProps) => {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-medium">Program Information</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Program ID</h3>
-                      <p>{student.program_id}</p>
+                  <div className="grid grid-cols-1 gap-3 mt-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-1">
+                        <h3 className="text-sm font-medium text-gray-500">Program ID</h3>
+                      </div>
+                      <div className="col-span-2">
+                        <p>{student.program_id}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Enrollment Year</h3>
-                      <p>{student.enrollment_year}</p>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-1">
+                        <h3 className="text-sm font-medium text-gray-500">Enrollment Year</h3>
+                      </div>
+                      <div className="col-span-2">
+                        <p>{student.enrollment_year}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                      <Badge variant="secondary">{student.status}</Badge>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-1">
+                        <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                      </div>
+                      <div className="col-span-2">
+                        <Badge variant="secondary">{student.status}</Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div>
+                <div className="mt-6">
                   <h3 className="text-lg font-medium">Parent Information</h3>
                   {parent ? (
-                    displayParentInfo(parent)
+                    <div className="grid grid-cols-1 gap-3 mt-3">
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-1">
+                          <h3 className="text-sm font-medium text-gray-500">Email</h3>
+                        </div>
+                        <div className="col-span-2">
+                          <p>{parent?.email || 'Not provided'}</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="col-span-1">
+                          <h3 className="text-sm font-medium text-gray-500">Feedback</h3>
+                        </div>
+                        <div className="col-span-2">
+                          <p>{parent?.feedback || 'No feedback provided'}</p>
+                        </div>
+                      </div>
+                    </div>
                   ) : (
-                    <p className="text-muted-foreground">No parent information available.</p>
+                    <p className="text-muted-foreground mt-2">No parent information available.</p>
                   )}
                 </div>
               </div>

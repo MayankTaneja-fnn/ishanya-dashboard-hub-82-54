@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import { Search, Filter } from 'lucide-react';
+import { Search, Filter, GraduationCap, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Student = {
@@ -145,51 +145,53 @@ const StudentPerformance = () => {
       onBack={() => window.history.back()}
     >
       <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search students by name..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        <Card className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search students by name..."
+                className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+              <Select value={selectedCenter} onValueChange={setSelectedCenter}>
+                <SelectTrigger className="pl-10">
+                  <SelectValue placeholder="Filter by center" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Centers</SelectItem>
+                  {centers.map((center) => (
+                    <SelectItem key={center.center_id} value={center.center_id.toString()}>
+                      {center.center_id} - {center.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
+              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                <SelectTrigger className="pl-10">
+                  <SelectValue placeholder="Filter by program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Programs</SelectItem>
+                  {programs.map((program) => (
+                    <SelectItem key={program.program_id} value={program.program_id.toString()}>
+                      {program.program_id} - {program.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-            <Select value={selectedCenter} onValueChange={setSelectedCenter}>
-              <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Filter by center" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-centers">All Centers</SelectItem>
-                {centers.map((center) => (
-                  <SelectItem key={center.center_id} value={center.center_id.toString()}>
-                    {center.center_id} - {center.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-            <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Filter by program" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all-programs">All Programs</SelectItem>
-                {programs.map((program) => (
-                  <SelectItem key={program.program_id} value={program.program_id.toString()}>
-                    {program.program_id} - {program.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+        </Card>
 
         {loading ? (
           <div className="flex justify-center items-center h-64">
@@ -200,27 +202,38 @@ const StudentPerformance = () => {
             <p className="text-gray-500">No students found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredStudents.map((student) => (
               <Link 
                 to={`/admin/student-details/${student.student_id}`} 
                 key={student.id}
                 className="block"
               >
-                <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-ishanya-green">
+                <Card className="hover:shadow-md transition-shadow cursor-pointer border-l-4 border-ishanya-green h-full">
                   <CardContent className="p-4">
-                    <h3 className="font-semibold text-lg">
-                      {student.first_name} {student.last_name}
-                    </h3>
-                    <div className="text-sm text-gray-600 mt-1">
-                      <p>Student ID: {student.student_id}</p>
-                      <p>Gender: {student.gender}</p>
-                      <p className="mt-2 text-xs inline-block bg-gray-100 px-2 py-1 rounded">
-                        Center: {student.center_name}
-                      </p>
-                      <p className="mt-1 text-xs inline-block bg-gray-100 px-2 py-1 rounded">
-                        Program: {student.program_name}
-                      </p>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="h-9 w-9 rounded-full bg-ishanya-green/10 flex items-center justify-center">
+                        <User className="h-5 w-5 text-ishanya-green" />
+                      </div>
+                      <h3 className="font-semibold text-base line-clamp-1">
+                        {student.first_name} {student.last_name}
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-500">ID:</span>
+                        <span>{student.student_id}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-500">Gender:</span>
+                        <span>{student.gender}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3">
+                        <div className="text-xs inline-flex items-center gap-1 bg-gray-100 px-2 py-1 rounded">
+                          <GraduationCap className="h-3 w-3" />
+                          <span className="line-clamp-1">{student.program_name}</span>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
