@@ -18,7 +18,6 @@ import StudentFormHandler from '@/components/admin/StudentFormHandler';
 import StudentForm from '@/components/admin/StudentForm';
 import ActivitiesSection from '@/components/admin/ActivitiesSection';
 import AnalyticsDashboard from '@/components/admin/AnalyticsDashboard';
-import DataManager from '@/components/admin/DataManager';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -306,12 +305,6 @@ const Index = () => {
       onBack={handleBack}
     >
       {renderContent()}
-      
-      {!selectedCenter && !selectedProgram && !selectedTable && (
-        <div className="mt-8">
-          <DataManager />
-        </div>
-      )}
       
       {selectedTable?.name === 'students' && selectedProgram && (
         <StudentFormHandler
