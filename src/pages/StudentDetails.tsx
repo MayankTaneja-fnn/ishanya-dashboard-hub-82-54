@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
@@ -9,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
-  BarChart,
+  BarChart as BarChartIcon,
   CheckCircle2,
   Clock,
   FileText,
@@ -37,9 +36,18 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import axios from 'axios';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
 type Student = {
-  student_id: number; // Changed from string to number to match database
+  student_id: number;
   first_name: string;
   last_name: string;
   gender: string;
@@ -116,7 +124,7 @@ type PerformanceRecord = {
   is_sent: boolean;
   skill_area?: string | null;
   comments?: string | null;
-  [key: string]: any; // To allow for dynamic properties like "1_score", "2_description", etc.
+  [key: string]: any;
 };
 
 type GeneralReport = {
@@ -160,7 +168,6 @@ const StudentDetails = () => {
       
       setLoading(true);
       try {
-        // Parse studentId as number since that's what our type expects now
         const studentIdNum = parseInt(studentId, 10);
         
         const { data: studentData, error: studentError } = await supabase
@@ -198,14 +205,13 @@ const StudentDetails = () => {
 
         if (taskError) throw taskError;
         
-        // Transform tasks for compatibility with our Task type
         const transformedTasks = (taskData || []).map(task => ({
           ...task,
           title: task.title || '',
           description: task.description || '',
           category: task.category || '',
           feedback: task.feedback || '',
-          created_at: new Date().toISOString() // Add required created_at field
+          created_at: new Date().toISOString()
         }));
         
         setTasks(transformedTasks);
@@ -321,6 +327,42 @@ const StudentDetails = () => {
     }
   };
 
+  const formatDisplayKey = (key: string) => {
+    if (key.includes('_')) {
+      const [number, type] = key.split('_');
+      return `${type.charAt(0).toUpperCase() + type.slice(1)} ${number}`;
+    } else {
+      return key.charAt(0).toUpperCase() + key.slice(1);
+    }
+  };
+
+  const hasScoreData = (performance: any) => {
+    if (!performance) return false;
+    return Object.keys(performance).some(key => 
+      key.includes('_score') && performance[key] !== null && performance[key] !== undefined
+    );
+  };
+
+  const prepareChartData = (performance: any) => {
+    if (!performance) return [];
+    
+    const scoreData = Object.entries(performance)
+      .filter(([key, value]) => key.includes('_score') && value !== null && value !== undefined)
+      .map(([key, value]) => {
+        const skillNumber = key.split('_')[0];
+        const descriptionKey = `${skillNumber}_description`;
+        const description = performance[descriptionKey] || `Skill ${skillNumber}`;
+        
+        return {
+          name: description.length > 30 ? description.substring(0, 30) + '...' : description,
+          score: typeof value === 'number' ? value : parseFloat(value as string) || 0,
+          fullDescription: description
+        };
+      });
+      
+    return scoreData;
+  };
+
   if (loading) {
     return (
       <Layout
@@ -417,6 +459,8 @@ const StudentDetails = () => {
             const performance = getQuarterlyPerformance(quarter);
             const report = getQuarterlyReport(quarter);
             const isExpanded = expandedQuarter === quarter;
+            const chartData = prepareChartData(performance);
+            const hasScores = hasScoreData(performance);
 
             return (
               <Card key={quarter} className={`border-l-4 ${isExpanded ? 'border-l-ishanya-green' : 'border-l-gray-200'}`}>
@@ -433,45 +477,179 @@ const StudentDetails = () => {
                 {isExpanded && (
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="font-semibold mb-3">Performance Records</h3>
-                        {performance ? (
-                          <div className="space-y-3">
-                            <p><strong>Area of Development:</strong> {performance.area_of_development}</p>
-                            
-                            {Object.entries(performance).map(([key, value]) => {
-                              if (['id', 'student_id', 'program_id', 'educator_employee_id', 'quarter', 'area_of_development'].includes(key) || value === null) {
-                                return null;
-                              }
-                              
-                              const displayKey = key.includes('_') 
-                                ? `${key.split('_')[1].charAt(0).toUpperCase() + key.split('_')[1].slice(1)} ${key.split('_')[0]}` 
-                                : key.charAt(0).toUpperCase() + key.slice(1);
-                              
-                              return (
-                                <p key={key}><strong>{displayKey}:</strong> {String(value)}</p>
-                              );
-                            })}
+                      <Card className="shadow-sm">
+                        <CardHeader className="bg-gray-50 pb-2">
+                          <div className="flex items-center gap-2">
+                            <Activity className="h-5 w-5 text-ishanya-green" />
+                            <CardTitle className="text-lg font-medium">Performance Records</CardTitle>
                           </div>
-                        ) : (
-                          <p className="text-gray-500">No performance records available for this quarter.</p>
-                        )}
-                      </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                          {performance ? (
+                            <div className="space-y-4">
+                              <div className="p-3 bg-gray-50 rounded-md">
+                                <h4 className="font-medium mb-1">Area of Development</h4>
+                                <p>{performance.area_of_development}</p>
+                              </div>
+                              
+                              {hasScores && (
+                                <div className="mt-4 bg-white p-2 rounded-lg border">
+                                  <h4 className="font-medium mb-3 text-center">Performance Scores</h4>
+                                  <div className="h-64">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" />
+                                        <XAxis dataKey="name" />
+                                        <YAxis domain={[0, 10]} />
+                                        <Tooltip 
+                                          formatter={(value, name, props) => [`Score: ${value}`, '']}
+                                          labelFormatter={(label) => chartData.find(item => item.name === label)?.fullDescription || label}
+                                        />
+                                        <Line 
+                                          type="monotone" 
+                                          dataKey="score" 
+                                          stroke="#16a34a" 
+                                          activeDot={{ r: 8 }} 
+                                          strokeWidth={2}
+                                        />
+                                      </LineChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="grid grid-cols-1 gap-2 mt-4">
+                                {Object.entries(performance).map(([key, value]) => {
+                                  if (
+                                    value === null || 
+                                    ['id', 'student_id', 'program_id', 'educator_employee_id', 'quarter', 'area_of_development', 'is_sent'].includes(key)
+                                  ) {
+                                    return null;
+                                  }
+                                  
+                                  const displayKey = formatDisplayKey(key);
+                                  
+                                  if (key.includes('_score')) {
+                                    return (
+                                      <div key={key} className="flex items-center gap-2 p-2 border rounded">
+                                        <div className="font-medium text-gray-700 min-w-32">{displayKey}:</div>
+                                        <div className="flex-1">
+                                          <div className="flex items-center gap-2">
+                                            <Progress 
+                                              value={Number(value) * 10} 
+                                              className="h-2.5" 
+                                            />
+                                            <span className="text-sm font-medium">{value}/10</span>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  }
+                                  
+                                  return (
+                                    <div key={key} className="p-2 border rounded">
+                                      <div className="font-medium text-gray-700">{displayKey}</div>
+                                      <div className="mt-1">{String(value)}</div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                              <Info className="h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-gray-500">No performance records available for this quarter.</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                       
-                      <div>
-                        <h3 className="font-semibold mb-3">General Report</h3>
-                        {report ? (
-                          <div className="space-y-3">
-                            {report.punctuality && <p><strong>Punctuality:</strong> {report.punctuality}</p>}
-                            {report.preparedness && <p><strong>Preparedness:</strong> {report.preparedness}</p>}
-                            {report.assistance_required && <p><strong>Assistance Required:</strong> {report.assistance_required}</p>}
-                            {report.parental_support && <p><strong>Parental Support:</strong> {report.parental_support}</p>}
-                            {report.any_behavioral_issues && <p><strong>Behavioral Issues:</strong> {report.any_behavioral_issues}</p>}
+                      <Card className="shadow-sm">
+                        <CardHeader className="bg-gray-50 pb-2">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-5 w-5 text-ishanya-green" />
+                            <CardTitle className="text-lg font-medium">General Report</CardTitle>
                           </div>
-                        ) : (
-                          <p className="text-gray-500">No general report available for this quarter.</p>
-                        )}
-                      </div>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                          {report ? (
+                            <div className="space-y-3">
+                              {report.punctuality && (
+                                <div className="p-3 bg-white rounded-md border">
+                                  <div className="flex items-start gap-2">
+                                    <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
+                                    <div>
+                                      <h4 className="font-medium">Punctuality</h4>
+                                      <p className="mt-1">{report.punctuality}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {report.preparedness && (
+                                <div className="p-3 bg-white rounded-md border">
+                                  <div className="flex items-start gap-2">
+                                    <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5" />
+                                    <div>
+                                      <h4 className="font-medium">Preparedness</h4>
+                                      <p className="mt-1">{report.preparedness}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {report.assistance_required && (
+                                <div className="p-3 bg-white rounded-md border">
+                                  <div className="flex items-start gap-2">
+                                    <HelpCircle className="h-5 w-5 text-purple-500 mt-0.5" />
+                                    <div>
+                                      <h4 className="font-medium">Assistance Required</h4>
+                                      <p className="mt-1">{report.assistance_required}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {report.parental_support && (
+                                <div className="p-3 bg-white rounded-md border">
+                                  <div className="flex items-start gap-2">
+                                    <Heart className="h-5 w-5 text-pink-500 mt-0.5" />
+                                    <div>
+                                      <h4 className="font-medium">Parental Support</h4>
+                                      <p className="mt-1">{report.parental_support}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {report.any_behavioral_issues && (
+                                <div className="p-3 bg-white rounded-md border">
+                                  <div className="flex items-start gap-2">
+                                    <AlertCircle className="h-5 w-5 text-amber-500 mt-0.5" />
+                                    <div>
+                                      <h4 className="font-medium">Behavioral Issues</h4>
+                                      <p className="mt-1">{report.any_behavioral_issues}</p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              
+                              {!report.punctuality && !report.preparedness && !report.assistance_required && 
+                               !report.parental_support && !report.any_behavioral_issues && (
+                                <div className="flex flex-col items-center justify-center py-6 text-center">
+                                  <Info className="h-8 w-8 text-gray-400 mb-2" />
+                                  <p className="text-gray-500">No report details available.</p>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center py-6 text-center">
+                              <Info className="h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-gray-500">No general report available for this quarter.</p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
                     </div>
                     
                     <div className="mt-6 flex justify-end">
