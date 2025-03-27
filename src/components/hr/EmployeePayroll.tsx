@@ -2,12 +2,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Edit, IndianRupee, CalendarClock, Plus } from 'lucide-react';
+import { Edit, IndianRupee, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import PayrollForm from './PayrollForm';
 import { format } from 'date-fns';
+import { toast } from '@/components/ui/use-toast';
 
 type EmployeePayrollProps = {
   employeeId: number;

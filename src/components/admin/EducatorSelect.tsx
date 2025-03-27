@@ -99,7 +99,9 @@ const EducatorSelect = ({
             </SelectItem>
           ))}
           {filteredEducators.length === 0 && !loading && (
-            <SelectItem value="no-educators-available">No educators available</SelectItem>
+            <SelectItem value="no-educators-available" disabled>
+              No educators available
+            </SelectItem>
           )}
         </SelectContent>
       </Select>

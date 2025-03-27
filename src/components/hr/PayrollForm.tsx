@@ -3,15 +3,15 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { DatePickerFormField } from '@/components/ui/DatePickerFormField';
 
-// Simplified type definition to avoid excessive nesting
+// Define the types properly to avoid excessive type instantiation
 type PayrollFormProps = {
   employeeId: number;
-  initialData?: PayrollData;
+  initialData?: PayrollData | undefined;
   onSuccess: () => void;
   onCancel: () => void;
 };
@@ -37,10 +37,12 @@ const PayrollForm: React.FC<PayrollFormProps> = ({
   
   const [loading, setLoading] = useState(false);
   
-  // Simple handler to avoid deep type nesting
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: name === 'current_salary' ? Number(value) : value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: name === 'current_salary' ? Number(value) : value 
+    }));
   };
   
   const handleDateChange = (date: Date | undefined) => {
@@ -79,11 +81,18 @@ const PayrollForm: React.FC<PayrollFormProps> = ({
         throw new Error(response.error.message);
       }
       
-      toast.success('Payroll information saved successfully');
+      toast({
+        title: "Success",
+        description: "Payroll information saved successfully",
+      });
       onSuccess();
     } catch (error) {
       console.error('Error saving payroll data:', error);
-      toast.error('Failed to save payroll information');
+      toast({
+        title: "Error",
+        description: "Failed to save payroll information",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
