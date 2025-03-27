@@ -30,17 +30,19 @@ type Center = {
 type Program = {
   program_id: number;
   name: string;
+  center_id: number;
 };
 
 const StudentPerformance = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
   const [centers, setCenters] = useState<Center[]>([]);
-  const [programs, setPrograms] = useState<Program[]>([]);
+  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
+  const [filteredPrograms, setFilteredPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCenter, setSelectedCenter] = useState<string>('');
-  const [selectedProgram, setSelectedProgram] = useState<string>('');
+  const [selectedCenter, setSelectedCenter] = useState<string>('all');
+  const [selectedProgram, setSelectedProgram] = useState<string>('all');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +77,7 @@ const StudentPerformance = () => {
         // Fetch programs
         const { data: programsData, error: programsError } = await supabase
           .from('programs')
-          .select('program_id, name');
+          .select('program_id, name, center_id');
 
         if (programsError) {
           console.error("Error fetching programs:", programsError);
@@ -83,6 +85,10 @@ const StudentPerformance = () => {
         }
         
         console.log("Programs fetched:", programsData);
+
+        // Set all programs and initialize filtered programs to all programs
+        setAllPrograms(programsData || []);
+        setFilteredPrograms(programsData || []);
 
         // Map center names and program names to students
         const studentsWithDetails = studentsData.map((student: Student) => {
@@ -99,7 +105,6 @@ const StudentPerformance = () => {
         setStudents(studentsWithDetails);
         setFilteredStudents(studentsWithDetails);
         setCenters(centersData || []);
-        setPrograms(programsData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         toast.error('Failed to load student data');
@@ -110,6 +115,25 @@ const StudentPerformance = () => {
 
     fetchData();
   }, []);
+
+  // Update filtered programs when center selection changes
+  useEffect(() => {
+    if (selectedCenter === 'all') {
+      setFilteredPrograms(allPrograms);
+    } else {
+      const centerIdNumber = parseInt(selectedCenter);
+      const programsInCenter = allPrograms.filter(program => program.center_id === centerIdNumber);
+      setFilteredPrograms(programsInCenter);
+      
+      // If the currently selected program is not in the filtered list, reset it to 'all'
+      if (selectedProgram !== 'all') {
+        const programStillValid = programsInCenter.some(p => p.program_id.toString() === selectedProgram);
+        if (!programStillValid) {
+          setSelectedProgram('all');
+        }
+      }
+    }
+  }, [selectedCenter, allPrograms]);
 
   useEffect(() => {
     // Apply filters whenever search query or dropdown selections change
@@ -137,6 +161,10 @@ const StudentPerformance = () => {
     setFilteredStudents(result);
   }, [searchQuery, selectedCenter, selectedProgram, students]);
 
+  const handleCenterChange = (value: string) => {
+    setSelectedCenter(value);
+  };
+
   return (
     <Layout
       title="Student Performance"
@@ -159,7 +187,7 @@ const StudentPerformance = () => {
             
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-              <Select value={selectedCenter} onValueChange={setSelectedCenter}>
+              <Select value={selectedCenter} onValueChange={handleCenterChange}>
                 <SelectTrigger className="pl-10">
                   <SelectValue placeholder="Filter by center" />
                 </SelectTrigger>
@@ -182,7 +210,7 @@ const StudentPerformance = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Programs</SelectItem>
-                  {programs.map((program) => (
+                  {filteredPrograms.map((program) => (
                     <SelectItem key={program.program_id} value={program.program_id.toString()}>
                       {program.program_id} - {program.name}
                     </SelectItem>
