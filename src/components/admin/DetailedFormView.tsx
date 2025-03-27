@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Phone, School, Calendar, Book } from 'lucide-react';
+import { User, Mail, Phone, School, Calendar, Book, Star, Heart, Activity, Users, Home, FileText, Info } from 'lucide-react';
 
 interface DetailedFormViewProps {
   entry: Record<string, any>;
@@ -210,6 +211,13 @@ const DetailedFormView = ({
 
   const categories = organizeFieldsByCategory();
 
+  // Get student name from form data if available
+  const studentName = formData['First Name'] && formData['Last Name'] 
+    ? `${formData['First Name']} ${formData['Last Name']}` 
+    : formData['first_name'] && formData['last_name']
+    ? `${formData['first_name']} ${formData['last_name']}`
+    : 'Student Details';
+
   return (
     <div>
       {mode === 'view' && onAccept && onReject && (
@@ -233,7 +241,16 @@ const DetailedFormView = ({
       )}
     
       <ScrollArea className="h-[60vh] pr-4">
-        <Card className="border-0 shadow-none">
+        <Card className="border shadow-sm mb-6 overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700 pb-2 border-b">
+            <CardTitle className="flex items-center gap-3 text-xl text-blue-700 dark:text-blue-300">
+              <User className="h-6 w-6 text-blue-500" />
+              {studentName}
+            </CardTitle>
+            <CardDescription>
+              Student ID: {formData.student_id || formData['Student ID'] || 'N/A'}
+            </CardDescription>
+          </CardHeader>
           <CardContent className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Personal Information Card */}
@@ -270,7 +287,7 @@ const DetailedFormView = ({
               <Card className="col-span-1 shadow-sm border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-md flex items-center gap-2">
-                    <User className="h-4 w-4 text-purple-500" />
+                    <Users className="h-4 w-4 text-purple-500" />
                     Family Information
                   </CardTitle>
                 </CardHeader>
@@ -301,7 +318,7 @@ const DetailedFormView = ({
                 <Card className="col-span-1 shadow-sm border-l-4 border-l-gray-500 hover:shadow-md transition-shadow">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-md flex items-center gap-2">
-                      <Book className="h-4 w-4 text-gray-500" />
+                      <Info className="h-4 w-4 text-gray-500" />
                       Additional Information
                     </CardTitle>
                   </CardHeader>
